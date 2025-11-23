@@ -1,6 +1,6 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = process.env.API_KEY;
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 // System instruction to guide Gemini to be an expert prompt engineer
 const SYSTEM_INSTRUCTION = `
@@ -82,16 +82,21 @@ export const optimizePrompt = async (rawInput: string): Promise<string> => {
     throw new Error("API Key is missing. Please set your GEMINI_API_KEY in the environment variables.");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const genAI = new GoogleGenerativeAI(apiKey);
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: `🚀 TRANSFORM THIS IDEA INTO PURE DIGITAL MAGIC 🚀
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      systemInstruction: SYSTEM_INSTRUCTION,
+      generationConfig: {
+        temperature: 0.9, // Higher creativity for more exciting outputs
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 2048, // Allow for longer, more detailed prompts
+      }
+    });
+    
+    const prompt = `🚀 TRANSFORM THIS IDEA INTO PURE DIGITAL MAGIC 🚀
 
 My rough concept: "${rawInput}"
 
@@ -104,23 +109,15 @@ Please alchemize this into a mind-blowing, viral-worthy prompt that will create 
 
 Make the prompt sound like it came from an elite creative agency that charges $500k per project. Use vivid, sensory language that paints a picture. Include specific technical details wrapped in excitement.
 
-OUTPUT: A single, compelling prompt that will generate something legendary.` }
-          ]
-        }
-      ],
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.9, // Higher creativity for more exciting outputs
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048, // Allow for longer, more detailed prompts
-      }
-    });
+OUTPUT: A single, compelling prompt that will generate something legendary.`;
 
-    const result = response.text || "Could not generate optimized prompt. Please try again.";
+    const result = await model.generateContent(prompt);
+
+    const response = result.response;
+    const text = response.text() || "Could not generate optimized prompt. Please try again.";
     
     // Post-process to ensure maximum coolness
-    return enhancePromptCoolness(result);
+    return enhancePromptCoolness(text);
     
   } catch (error) {
     console.error("Gemini API Error:", error);
