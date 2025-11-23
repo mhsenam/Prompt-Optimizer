@@ -78,15 +78,18 @@ OUTPUT: An extraordinary, viral-worthy prompt that will generate something absol
 `;
 
 export const optimizePrompt = async (rawInput: string): Promise<string> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please set your GEMINI_API_KEY in the environment variables.");
+  // Debug: Check if API key is loaded
+  console.log('API Key loaded:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND');
+  
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error("API Key is missing. Please set your VITE_GEMINI_API_KEY in the .env file and restart the dev server.");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey.trim());
 
   try {
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: SYSTEM_INSTRUCTION,
       generationConfig: {
         temperature: 0.9, // Higher creativity for more exciting outputs
@@ -119,9 +122,25 @@ OUTPUT: A single, compelling prompt that will generate something legendary.`;
     // Post-process to ensure maximum coolness
     return enhancePromptCoolness(text);
     
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw new Error(`Failed to optimize prompt: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  } catch (error: any) {
+    console.error("Gemini API Error Details:", error);
+    
+    // Provide more specific error messages
+    if (error?.message?.includes('API_KEY_INVALID') || error?.message?.includes('API key')) {
+      throw new Error('Invalid API key. Please check your VITE_GEMINI_API_KEY in the .env file.');
+    }
+    
+    if (error?.message?.includes('quota') || error?.message?.includes('QUOTA')) {
+      throw new Error('API quota exceeded. Please check your Gemini API quota.');
+    }
+    
+    if (error?.message?.includes('PERMISSION_DENIED')) {
+      throw new Error('Permission denied. Please check your API key permissions.');
+    }
+    
+    // Generic error with more details
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    throw new Error(`Failed to optimize prompt: ${errorMessage}`);
   }
 };
 

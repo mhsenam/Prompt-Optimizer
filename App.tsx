@@ -30,8 +30,9 @@ export default function App() {
       // Trigger celebration animation
       setTimeout(() => setIsEnhanced(false), 3000);
     } catch (err) {
-      setError('Failed to optimize prompt. Please check your API key or try again.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to optimize prompt. Please check your API key or try again.';
+      setError(errorMessage);
+      console.error('Error details:', err);
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +123,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           
           {/* Input Column */}
           <div className="flex flex-col gap-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -146,7 +147,7 @@ export default function App() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="e.g., I want a todo app that feels like a cyberpunk hacker terminal with neon effects..."
-                className="w-full h-64 sm:h-96 bg-gray-950 border border-gray-800 rounded-lg p-4 text-sm sm:text-base text-gray-200 placeholder-gray-600 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none resize-none font-mono transition-all focus:shadow-lg focus:shadow-primary-500/20"
+                className="w-full h-64 sm:h-80 lg:h-96 bg-gray-950 border border-gray-800 rounded-lg p-4 text-sm sm:text-base text-gray-200 placeholder-gray-600 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none resize-none font-mono transition-all focus:shadow-lg focus:shadow-primary-500/20"
                 spellCheck={false}
               />
             </div>
@@ -179,7 +180,7 @@ export default function App() {
 
           {/* Output Column */}
           <div className="flex flex-col gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 shadow-xl h-full flex flex-col">
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 shadow-xl flex flex-col min-h-[20rem] lg:min-h-[32rem]">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-primary-400 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
@@ -208,8 +209,7 @@ export default function App() {
                 </button>
               </div>
               
-              {/* Changed: Used flex-1 to ensure it takes all available vertical space */}
-              <div className="relative flex-1 min-h-[16rem] sm:min-h-0">
+              <div className="relative flex-1 min-h-[16rem]">
                 {optimizedOutput ? (
                   <div className="absolute inset-0 overflow-y-auto custom-scrollbar pr-2">
                     <div className="bg-gray-950 rounded-lg border border-gray-800 p-4 min-h-full text-left">
